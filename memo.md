@@ -32,3 +32,5 @@ Epoch: 11, global_step=1600
 Evaluating
 Evaluated 400 steps resulting in 0 episodes
 model saved to runs/UR3eReach-v0__ppo__1__1784380870/ckpt_11.pt
+
+test
