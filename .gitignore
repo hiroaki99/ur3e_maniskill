@@ -1,0 +1,10 @@
+# 学習結果
+runs/
+logs/
+videos/
+checkpoints/
+
+# 学習済みモデル
+*.pt
+*.pth
+*.ckpt

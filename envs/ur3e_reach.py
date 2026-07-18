@@ -1,0 +1,176 @@
+from typing import Any
+
+import numpy as np
+import sapien
+import torch
+
+from mani_skill.envs.sapien_env import BaseEnv
+from mani_skill.sensors.camera import CameraConfig
+from mani_skill.utils import sapien_utils
+from mani_skill.utils.registration import register_env
+from mani_skill.utils.structs import Pose
+from mani_skill.utils.structs.types import Array
+
+# import時にカスタムAgentを登録する
+from agents.ur3e import UR3e
+
+
+@register_env("UR3eReach-v0", max_episode_steps=100)
+class UR3eReachEnv(BaseEnv):
+    """UR3eのtool0を3次元目標位置へ移動する環境。"""
+
+    SUPPORTED_ROBOTS = ["ur3e_custom"]
+    agent: UR3e
+
+    goal_radius = 0.03
+
+    def __init__(
+        self,
+        *args,
+        robot_uids="ur3e_custom",
+        robot_init_qpos_noise=0.01,
+        **kwargs,
+    ):
+        self.robot_init_qpos_noise = robot_init_qpos_noise
+        super().__init__(*args, robot_uids=robot_uids, **kwargs)
+
+    def _load_agent(self, options: dict):
+        # UR3eの台座をワールド原点に配置
+        super()._load_agent(
+            options,
+            sapien.Pose(p=[0.0, 0.0, 0.0]),
+        )
+
+    def _load_scene(self, options: dict):
+        # 目標位置を示す赤い球。衝突形状は持たせない。
+        builder = self.scene.create_actor_builder()
+
+        builder.add_sphere_visual(
+            radius=self.goal_radius,
+            material=sapien.render.RenderMaterial(
+                base_color=[1.0, 0.0, 0.0, 0.7],
+            ),
+        )
+
+        builder.initial_pose = sapien.Pose(
+            p=[0.25, 0.0, 0.25],
+        )
+
+        self.goal_site = builder.build_kinematic(
+            name="goal_site",
+        )
+
+    def _initialize_episode(
+        self,
+        env_idx: torch.Tensor,
+        options: dict,
+    ):
+        with torch.device(self.device):
+            batch_size = len(env_idx)
+
+            # agents/ur3e.pyで定義したrest姿勢
+            qpos = torch.tensor(
+                [
+                    0.0,
+                    -np.pi / 2,
+                    np.pi / 2,
+                    -np.pi / 2,
+                    -np.pi / 2,
+                    0.0,
+                ],
+                dtype=torch.float32,
+            ).repeat(batch_size, 1)
+
+            qpos += (
+                torch.randn((batch_size, 6))
+                * self.robot_init_qpos_noise
+            )
+
+            self.agent.reset(qpos)
+
+            # 初期TCP位置の近傍に目標を設定する。
+            # 最初から広いワークスペース全域を使わない。
+            tcp_position = self.agent.tcp.pose.p[env_idx]
+
+            offset = torch.zeros((batch_size, 3))
+            offset[:, 0] = torch.rand(batch_size) * 0.12 - 0.06
+            offset[:, 1] = torch.rand(batch_size) * 0.12 - 0.06
+            offset[:, 2] = torch.rand(batch_size) * 0.10 + 0.03
+
+            goal_position = tcp_position + offset
+
+            self.goal_site.set_pose(
+                Pose.create_from_pq(
+                    p=goal_position,
+                    q=[1.0, 0.0, 0.0, 0.0],
+                )
+            )
+
+    def evaluate(self):
+        tcp_position = self.agent.tcp.pose.p
+        goal_position = self.goal_site.pose.p
+
+        distance = torch.linalg.norm(
+            tcp_position - goal_position,
+            dim=1,
+        )
+
+        return {
+            "success": distance < self.goal_radius,
+            "tcp_to_goal_dist": distance,
+        }
+
+    def _get_obs_extra(self, info: dict):
+        tcp_position = self.agent.tcp.pose.p
+        goal_position = self.goal_site.pose.p
+
+        return {
+            "tcp_pose": self.agent.tcp.pose.raw_pose,
+            "goal_pos": goal_position,
+            "tcp_to_goal_pos": goal_position - tcp_position,
+        }
+
+    def compute_dense_reward(
+        self,
+        obs: Any,
+        action: Array,
+        info: dict,
+    ):
+        distance = info["tcp_to_goal_dist"]
+
+        # 遠いと0付近、近いと1付近
+        reward = 1.0 - torch.tanh(5.0 * distance)
+
+        # 到達時は最大報酬
+        reward[info["success"]] = 1.0
+
+        return reward
+
+    def compute_normalized_dense_reward(
+        self,
+        obs: Any,
+        action: Array,
+        info: dict,
+    ):
+        return self.compute_dense_reward(
+            obs=obs,
+            action=action,
+            info=info,
+        )
+
+    @property
+    def _default_human_render_camera_configs(self):
+        pose = sapien_utils.look_at(
+            eye=[0.8, 0.8, 0.7],
+            target=[0.0, 0.0, 0.3],
+        )
+
+        return CameraConfig(
+            "render_camera",
+            pose=pose,
+            width=512,
+            height=512,
+            fov=1.0,
+            near=0.01,
+            far=10.0,
+        )
