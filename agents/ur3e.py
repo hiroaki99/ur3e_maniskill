@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import copy
 import numpy as np
 import sapien
 
@@ -68,27 +69,18 @@ class UR3e(BaseAgent):
 
     @property
     def _controller_configs(self):
-        # 絶対関節角指令
-        pd_joint_pos = PDJointPosControllerConfig(
-            self.arm_joint_names,
-            lower=None,
-            upper=None,
-            stiffness=self.arm_stiffness,
-            damping=self.arm_damping,
-            force_limit=self.arm_force_limit,
-            normalize_action=False,
+        pd_joint_delta_pos = PDJointPosControllerConfig(
+        self.arm_joint_names,
+        lower=-0.03,
+        upper=0.03,
+        stiffness=self.arm_stiffness,
+        damping=self.arm_damping,
+        force_limit=self.arm_force_limit,
+        use_delta=True,
         )
 
-        # 現在角度からの差分指令
-        pd_joint_delta_pos = PDJointPosControllerConfig(
-            self.arm_joint_names,
-            lower=-0.1,
-            upper=0.1,
-            stiffness=self.arm_stiffness,
-            damping=self.arm_damping,
-            force_limit=self.arm_force_limit,
-            use_delta=True,
-        )
+        pd_joint_target_delta_pos = copy.deepcopy(pd_joint_delta_pos)
+        pd_joint_target_delta_pos.use_target = True
 
         controller_configs = {
             "pd_joint_pos": {
@@ -96,6 +88,9 @@ class UR3e(BaseAgent):
             },
             "pd_joint_delta_pos": {
                 "arm": pd_joint_delta_pos,
+            },
+            "pd_joint_target_delta_pos": {
+                "arm": pd_joint_target_delta_pos,
             },
         }
 
