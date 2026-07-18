@@ -30,7 +30,7 @@ def evaluate_baseline(name, action_type):
         num_envs=NUM_ENVS,
         obs_mode="state",
         reward_mode="normalized_dense",
-        control_mode="pd_joint_delta_pos",
+        control_mode="pd_joint_target_delta_pos",
     )
 
     obs, info = env.reset(seed=0)

@@ -28,7 +28,7 @@ class UR3eReachEnv(BaseEnv):
         self,
         *args,
         robot_uids="ur3e_custom",
-        robot_init_qpos_noise=0.01,
+        robot_init_qpos_noise=0.0, # 初期位置固定
         **kwargs,
     ):
         self.robot_init_qpos_noise = robot_init_qpos_noise
@@ -92,10 +92,17 @@ class UR3eReachEnv(BaseEnv):
             # 最初から広いワークスペース全域を使わない。
             tcp_position = self.agent.tcp.pose.p[env_idx]
 
-            offset = torch.zeros((batch_size, 3))
-            offset[:, 0] = torch.rand(batch_size) * 0.12 - 0.06
-            offset[:, 1] = torch.rand(batch_size) * 0.12 - 0.06
-            offset[:, 2] = torch.rand(batch_size) * 0.10 + 0.03
+            # offset = torch.zeros((batch_size, 3))
+            # offset[:, 0] = torch.rand(batch_size) * 0.12 - 0.06
+            # offset[:, 1] = torch.rand(batch_size) * 0.12 - 0.06
+            # offset[:, 2] = torch.rand(batch_size) * 0.10 + 0.03
+
+            offset = torch.tensor(
+                [0.04, 0.0, 0.04],
+                dtype=torch.float32,
+                device=self.device,
+            ).repeat(batch_size, 1)
+
 
             goal_position = tcp_position + offset
 
@@ -130,33 +137,34 @@ class UR3eReachEnv(BaseEnv):
             "tcp_to_goal_pos": goal_position - tcp_position,
         }
 
-    def compute_dense_reward(
-        self,
-        obs: Any,
-        action: Array,
-        info: dict,
-    ):
+    def compute_dense_reward(self, obs, action, info):
         distance = info["tcp_to_goal_dist"]
 
-        # 遠いと0付近、近いと1付近
-        reward = 1.0 - torch.tanh(5.0 * distance)
+        reaching_reward = 1.0 - torch.tanh(10.0 * distance)
 
-        # 到達時は最大報酬
-        reward[info["success"]] = 1.0
+        success_bonus = 2.0 * info["success"].float()
+
+        action_penalty = 0.005 * torch.sum(
+            torch.square(action),
+            dim=1,
+        )
+
+        reward = (
+            reaching_reward
+            + success_bonus
+            - action_penalty
+        )
 
         return reward
 
-    def compute_normalized_dense_reward(
-        self,
-        obs: Any,
-        action: Array,
-        info: dict,
-    ):
+
+    def compute_normalized_dense_reward(self, obs, action, info):
+        # 最大値は概ね3なので正規化する
         return self.compute_dense_reward(
             obs=obs,
             action=action,
             info=info,
-        )
+        ) / 3.0
 
     @property
     def _default_human_render_camera_configs(self):

@@ -69,6 +69,18 @@ class UR3e(BaseAgent):
 
     @property
     def _controller_configs(self):
+        # 絶対関節角指令
+        pd_joint_pos = PDJointPosControllerConfig(
+            self.arm_joint_names,
+            lower=None,
+            upper=None,
+            stiffness=self.arm_stiffness,
+            damping=self.arm_damping,
+            force_limit=self.arm_force_limit,
+            normalize_action=False,
+        )
+
+        # 現在角度からの差分指令
         pd_joint_delta_pos = PDJointPosControllerConfig(
         self.arm_joint_names,
         lower=-0.03,
