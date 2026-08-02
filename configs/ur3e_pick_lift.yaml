@@ -1,0 +1,36 @@
+project:
+  env_id: "UR3eReach-v0"
+  obs_mode: "state"
+  control_mode: "pd_joint_delta_pos"
+  seed: 0
+
+robot:
+  expected_arm_dof: 6
+  base_position: [0.0, 0.0, 0.0]
+
+table:
+  surface_z: 0.0
+
+cube:
+  size: 0.05
+  mass: 0.10
+  position: [0.40, 0.00, 0.025]
+  orientation_wxyz: [1.0, 0.0, 0.0, 0.0]
+
+task:
+  lift_height: 0.05
+  hold_steps: 10
+  max_episode_steps: 200
+
+  tcp_grasp_offset: [0.0, 0.0, 0.0]
+  pregrasp_clearance: 0.10
+
+  success_distance_tolerance: 0.02
+
+residual:
+  alpha: 0.20
+  max_joint_delta_rad: 0.03
+
+safety:
+  max_base_to_target_distance: 0.48
+  min_target_z: 0.01
