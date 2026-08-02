@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<robot
+  name="ezgripper_for_ur3e"
+  xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:include
+    filename="materials.urdf.xacro"/>
+
+  <xacro:include
+    filename="ezgripper_single_mount.urdf.xacro"/>
+
+  <xacro:ezgripper_single_mount
+    prefix="gripper"
+    parent_link="tool0">
+
+    <!--
+      暫定値：
+      EZGripperの長手方向+xを、
+      UR tool0の+z方向へ合わせる。
+    -->
+    <origin
+      xyz="0 0 0"
+      rpy="0 -1.57079632679 0"/>
+
+  </xacro:ezgripper_single_mount>
+
+</robot>

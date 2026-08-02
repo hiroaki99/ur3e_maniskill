@@ -9,6 +9,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 # import時に UR3e Agent が登録される
 import agents.ur3e
+import agents.ur3e_ezgripper
 
 from mani_skill.examples.demo_robot import Args, main
 
