@@ -5,6 +5,7 @@ project:
   seed: 0
 
 robot:
+  uid: "ur3e_ezgripper"
   expected_arm_dof: 6
   base_position: [0.0, 0.0, 0.0]
 
