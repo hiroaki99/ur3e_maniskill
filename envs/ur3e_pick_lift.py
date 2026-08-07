@@ -189,6 +189,43 @@ class UR3ePickLiftEnv(BaseEnv):
             # テーブルとロボットを初期化する
             self.table_scene.initialize(env_idx)
 
+            # -------------------------------------------------
+            # UR3e + EZGripper の初期関節角を明示的に設定
+            # -------------------------------------------------
+
+            arm_qpos = torch.tensor(
+                CONFIG["robot"]["initial_arm_qpos"],
+                dtype=torch.float32,
+                device=self.device,
+            )
+
+            gripper_qpos = torch.tensor(
+                CONFIG["robot"]["initial_gripper_qpos"],
+                dtype=torch.float32,
+                device=self.device,
+            )
+
+            initial_qpos = torch.cat(
+                [
+                    arm_qpos,
+                    gripper_qpos,
+                ],
+                dim=0,
+            )
+
+            initial_qpos = initial_qpos.unsqueeze(0).repeat(
+                batch_size,
+                1,
+            )
+
+            self.agent.robot.set_qpos(initial_qpos)
+
+            initial_qvel = torch.zeros_like(
+                initial_qpos
+            )
+
+            self.agent.robot.set_qvel(initial_qvel)
+
             cube_position = torch.tensor(
                 self.cube_initial_position,
                 dtype=torch.float32,

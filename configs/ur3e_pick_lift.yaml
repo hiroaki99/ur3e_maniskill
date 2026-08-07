@@ -6,8 +6,25 @@ project:
 
 robot:
   uid: "ur3e_ezgripper"
+
   expected_arm_dof: 6
-  base_position: [0.0, 0.0, 0.0]
+
+  base_position:
+    - 0.0
+    - 0.0
+    - 0.0
+
+  initial_arm_qpos:
+    - 0.0
+    - -1.5707963
+    - 1.5707963
+    - -1.5707963
+    - -1.5707963
+    - 0.0
+
+  initial_gripper_qpos:
+    - 0.27
+    - 0.27
 
 table:
   surface_z: 0.0
