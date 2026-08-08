@@ -5,6 +5,8 @@ videos/
 checkpoints/
 *.json
 
+.md
+
 # 学習済みモデル
 *.pt
 *.pth

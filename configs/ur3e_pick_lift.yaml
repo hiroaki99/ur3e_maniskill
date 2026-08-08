@@ -71,3 +71,42 @@ residual:
 safety:
   max_base_to_target_distance: 0.48
   min_target_z: 0.01
+
+
+day5:
+  # Gripperをpre-contactからcloseまで
+  # 一気に動かさず段階的に閉じる
+  grasp_ramp_steps: 100
+
+  # 左右接触がこのstep数連続したら
+  # 閉動作を停止する
+  bilateral_contact_streak: 3
+
+  # 接触成立後、この分だけ追加で閉じる。
+  # 最初は0でよい。
+  squeeze_margin_action: 0.0
+
+  # 重力を戻して静止保持する時間
+  hold_steps: 100
+
+  # 微小持ち上げ
+  micro_lift_height_m: 0.01
+  lift_steps: 60
+
+  # 数値Jacobian算出用
+  jacobian_epsilon_rad: 0.002
+
+  # IK相当の結果として許容する
+  # 1関節あたりの最大総変化量
+  max_lift_joint_change_rad: 0.15
+
+  # シミュレーション上の異常な押し込みを
+  # 検出するための暫定上限。
+  # 実機EZGripperの安全仕様値ではない。
+  max_contact_force_n: 30.0
+
+  # Gravityを戻した後にこの値以上落下すれば失敗
+  max_hold_drop_m: 0.01
+
+  # 10 mm目標に対して8 mm以上上がれば成功とする
+  micro_lift_success_threshold_m: 0.008
