@@ -176,6 +176,65 @@ class UR3ePickLiftEnv(BaseEnv):
             name="pick_cube"
         )
 
+        # Day 4: EZGripper接触リンク
+
+        gripper_config = CONFIG["gripper"]
+
+        left_link_names = (
+            gripper_config[
+                "left_contact_links"
+            ]
+        )
+
+        right_link_names = (
+            gripper_config[
+                "right_contact_links"
+            ]
+        )
+
+        links_map = self.agent.robot.links_map
+
+        missing_links = []
+
+        for name in (
+            left_link_names
+            + right_link_names
+        ):
+
+            if name not in links_map:
+                missing_links.append(name)
+
+        if missing_links:
+
+            raise KeyError(
+                "接触判定用リンクがURDFに存在しません: "
+                f"{missing_links}"
+            )
+
+
+        self.left_contact_links = [
+            links_map[name]
+            for name in left_link_names
+        ]
+
+        self.right_contact_links = [
+            links_map[name]
+            for name in right_link_names
+        ]
+
+
+        self.contact_force_threshold = float(
+            gripper_config[
+                "contact_force_threshold_n"
+            ]
+        )
+
+        self.grasp_center_distance_threshold = float(
+            gripper_config[
+                "grasp_center_distance_threshold_m"
+            ]
+        )
+
     def _initialize_episode(
         self,
         env_idx: torch.Tensor,
@@ -278,10 +337,95 @@ class UR3ePickLiftEnv(BaseEnv):
 
         is_lifted = cube_height >= self.lift_height
 
+        # Contact force
+
+        left_contact_force = (
+            self._compute_side_contact_force(
+                self.left_contact_links
+            )
+        )
+
+        right_contact_force = (
+            self._compute_side_contact_force(
+                self.right_contact_links
+            )
+        )
+
+        left_contact = (
+            left_contact_force
+            >= self.contact_force_threshold
+        )
+
+        right_contact = (
+            right_contact_force
+            >= self.contact_force_threshold
+        )
+
+        # Gripper center
+
+        gripper_center = (
+            self._compute_gripper_center()
+        )
+
+        cube_to_gripper_center_distance = (
+            torch.linalg.norm(
+                self.cube.pose.p
+                - gripper_center,
+                dim=1,
+            )
+        )
+
+        # Grasp candidate
+
+        is_grasp_candidate = (
+            left_contact
+            & right_contact
+            & (
+                cube_to_gripper_center_distance
+                <= self.grasp_center_distance_threshold
+            )
+        )
+
+        # Success
+        #
+        # Day 2では「持ち上がっただけ」で成功だったが、
+        # Day 4以降は「把持しながら持ち上げる」ことを要求する。
+
+        success = (
+            is_lifted
+            & is_grasp_candidate
+        )
+
         return {
-            "success": is_lifted,
+            "success": success,
+
             "is_lifted": is_lifted,
+
             "cube_height": cube_height,
+
+            "left_contact_force": (
+                left_contact_force
+            ),
+
+            "right_contact_force": (
+                right_contact_force
+            ),
+
+            "left_contact": (
+                left_contact
+            ),
+
+            "right_contact": (
+                right_contact
+            ),
+
+            "is_grasp_candidate": (
+                is_grasp_candidate
+            ),
+
+            "cube_to_gripper_center_distance": (
+                cube_to_gripper_center_distance
+            ),
         }
 
     def _get_obs_extra(self, info: dict):
@@ -354,3 +498,80 @@ class UR3ePickLiftEnv(BaseEnv):
             )
             / 2.0
         )
+
+
+    def _compute_side_contact_force(
+        self,
+        links,
+    ):
+        """
+        指側に属する複数Linkとキューブとの
+        pairwise contact forceの大きさを合計する。
+
+        Returns
+        -------
+        torch.Tensor
+            shape = (num_envs,)
+            単位 = N
+        """
+
+        force_norms = []
+
+        for link in links:
+
+            force_vector = (
+                self.scene.get_pairwise_contact_forces(
+                    link,
+                    self.cube,
+                )
+            )
+
+            force_norm = torch.linalg.norm(
+                force_vector,
+                dim=1,
+            )
+
+            force_norms.append(
+                force_norm
+            )
+
+        return torch.stack(
+            force_norms,
+            dim=0,
+        ).sum(
+            dim=0
+        )
+
+
+    def _compute_gripper_center(self):
+        """
+        左右の接触リンク位置から、
+        現段階の簡易的なグリッパ中心を計算する。
+        """
+
+        left_positions = torch.stack(
+            [
+                link.pose.p
+                for link in self.left_contact_links
+            ],
+            dim=0,
+        ).mean(
+            dim=0
+        )
+
+        right_positions = torch.stack(
+            [
+                link.pose.p
+                for link in self.right_contact_links
+            ],
+            dim=0,
+        ).mean(
+            dim=0
+        )
+
+        gripper_center = (
+            left_positions
+            + right_positions
+        ) / 2.0
+
+        return gripper_center

@@ -3,6 +3,7 @@ runs/
 logs/
 videos/
 checkpoints/
+*.json
 
 # 学習済みモデル
 *.pt

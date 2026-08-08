@@ -87,13 +87,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--open-action",
         type=float,
-        default=1.0,
+        default=-1.0,
     )
 
     parser.add_argument(
         "--close-action",
         type=float,
-        default=-1.0,
+        default=1.0,
     )
 
     parser.add_argument(
@@ -246,21 +246,55 @@ def build_controller_slices(
 
 
 def run_phase(
-    env: gym.Env,
-    robot: Any,
-    action: np.ndarray,
-    steps: int,
-    render: bool,
-    sleep_seconds: float,
-) -> tuple[np.ndarray, np.ndarray, bool]:
-    """同じactionを指定step数送り、最終qpos/qvelを返す。"""
-
+    env,
+    robot,
+    action,
+    steps,
+    render,
+    sleep_seconds,
+    arm_slice,
+    arm_joint_indices,
+    arm_hold_qpos,
+    max_arm_delta_rad,
+):
     finite = True
 
     for _ in range(steps):
-        obs, reward, terminated, truncated, info = env.step(
-            action
+
+        current_qpos = first_env(
+            robot.get_qpos()
+        ).astype(float)
+
+        step_action = action.copy()
+
+        # UR3e姿勢保持
+
+        arm_hold_action = (
+            compute_arm_hold_action(
+                current_qpos=current_qpos,
+                arm_joint_indices=(
+                    arm_joint_indices
+                ),
+                arm_hold_qpos=(
+                    arm_hold_qpos
+                ),
+                max_delta_rad=(
+                    max_arm_delta_rad
+                ),
+            )
         )
+
+        step_action[arm_slice] = (
+            arm_hold_action
+        )
+
+        (
+            obs,
+            reward,
+            terminated,
+            truncated,
+            info,
+        ) = env.step(step_action)
 
         qpos = first_env(
             robot.get_qpos()
@@ -279,9 +313,51 @@ def run_phase(
 
         if render:
             env.render()
-            time.sleep(sleep_seconds)
+            time.sleep(
+                sleep_seconds
+            )
 
     return qpos, qvel, finite
+
+def compute_arm_hold_action(
+    current_qpos: np.ndarray,
+    arm_joint_indices: list[int],
+    arm_hold_qpos: np.ndarray,
+    max_delta_rad: float = 0.03,
+) -> np.ndarray:
+    """pd_joint_delta_pos用の姿勢保持actionを生成する。
+
+    物理的な関節誤差を[-1, 1]の正規化actionへ変換する。
+    """
+
+    current_arm_qpos = current_qpos[
+        arm_joint_indices
+    ]
+
+    error = (
+        arm_hold_qpos
+        - current_arm_qpos
+    )
+
+    # 1 stepで要求する補正量を制限
+    delta = np.clip(
+        error,
+        -max_delta_rad,
+        max_delta_rad,
+    )
+
+    # controller:
+    # physical range [-0.03, +0.03]
+    # normalized action [-1, +1]
+    normalized_action = (
+        delta / max_delta_rad
+    )
+
+    return np.clip(
+        normalized_action,
+        -1.0,
+        1.0,
+    ).astype(np.float32)
 
 
 def main() -> int:
@@ -364,6 +440,22 @@ def main() -> int:
             )
         )
 
+        arm_controller_name = None
+
+        for name in controllers:
+            if "arm" in name.lower():
+                arm_controller_name = name
+                break
+
+        if arm_controller_name is None:
+            raise RuntimeError(
+                "arm controllerが見つかりません"
+            )
+
+        arm_slice = controller_slices[
+            arm_controller_name
+        ]
+
         gripper_slice = controller_slices[
             gripper_controller_name
         ]
@@ -418,6 +510,10 @@ def main() -> int:
             robot.get_qpos()
         ).astype(float)
 
+        arm_hold_qpos = initial_qpos[
+            arm_joint_indices
+        ].copy()
+
         open_records: list[np.ndarray] = []
         close_records: list[np.ndarray] = []
         max_qvel_records: list[float] = []
@@ -462,6 +558,10 @@ def main() -> int:
                     steps=args.phase_steps,
                     render=args.render,
                     sleep_seconds=args.sleep,
+                    arm_slice=arm_slice,
+                    arm_joint_indices=arm_joint_indices,
+                    arm_hold_qpos=arm_hold_qpos,
+                    max_arm_delta_rad=0.03,
                 )
             )
 
@@ -491,6 +591,10 @@ def main() -> int:
                     steps=args.phase_steps,
                     render=args.render,
                     sleep_seconds=args.sleep,
+                    arm_slice=arm_slice,
+                    arm_joint_indices=arm_joint_indices,
+                    arm_hold_qpos=arm_hold_qpos,
+                    max_arm_delta_rad=0.03,
                 )
             )
 

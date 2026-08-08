@@ -26,6 +26,25 @@ robot:
     - 0.27
     - 0.27
 
+
+gripper:
+  # 正規化された1次元グリッパ行動
+  open_action: -1.0
+  close_action: 1.0
+
+  # URDF内で確認済みの指先パッドリンク
+  left_contact_links:
+    - "gripper_ezgripper_finger_pad_1"
+  right_contact_links:
+    - "gripper_ezgripper_finger_pad_2"
+
+  # Day 4の接触検証用の暫定値。実測結果で調整する
+  contact_force_threshold_n: 0.1
+  grasp_center_distance_threshold_m: 0.04
+
+  pre_contact_action: 0.57
+  pre_contact_gap_m: 0.055
+
 table:
   surface_z: 0.0
 
