@@ -167,3 +167,16 @@ day6:
 
   # 検出後に少し追加で閉じる
   squeeze_margin_action: 0.05
+
+day9:
+  # 内部のManiSkill TimeLimit。
+  # Day6軌道＋grasp＋holdを十分収容する値。
+  base_env_max_episode_steps: 1000
+
+  # reset後、Reference開始前に
+  # EZGripperをpre-contact状態へ安定させる。
+  reset_precontact_steps: 60
+
+  # residual=0 と reference action の
+  # 数値的一致判定。
+  zero_residual_tolerance: 1.0e-7
