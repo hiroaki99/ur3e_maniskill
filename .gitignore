@@ -4,6 +4,9 @@ logs/
 videos/
 checkpoints/
 *.json
+*.log
+*.csv
+*.pyc
 
 .md
 
