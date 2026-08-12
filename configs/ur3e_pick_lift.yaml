@@ -180,3 +180,260 @@ day9:
   # residual=0 と reference action の
   # 数値的一致判定。
   zero_residual_tolerance: 1.0e-7
+
+day10:
+
+  # Approach
+
+  # 1 cm接近したときの正規化基準
+  approach_progress_scale_m: 0.01
+
+  # 1 cm接近で最大 +0.2
+  approach_progress_weight: 0.2
+
+  # Grasp / Hold
+  bilateral_contact_bonus: 0.05
+
+  hold_contact_bonus: 0.02
+
+  # Lift
+
+  # 1 cm上昇すると +1.0
+  lift_progress_weight: 100.0
+
+  # 1stepの異常値を抑える
+  max_lift_delta_per_step_m: 0.01
+
+  # Terminal
+
+  success_bonus: 10.0
+
+  failure_penalty: 5.0
+
+  # Residual regularization
+
+  residual_penalty_weight: 0.1
+
+  # Contact safety
+
+  max_safe_gripper_force_n: 30.0
+
+  excessive_force_penalty_weight: 0.2
+
+  unsafe_collision_penalty: 5.0
+
+day11:
+
+  # --------------------------------------------------
+  # Smoke training
+  # --------------------------------------------------
+
+  seed: 0
+
+  # 元実装は500
+  start_timesteps: 500
+
+  # 元実装は5000。
+  # Day11では動作確認なので短縮する。
+  max_timesteps: 1500
+
+  batch_size: 32
+
+  replay_size: 100000
+
+  # --------------------------------------------------
+  # TD3
+  # --------------------------------------------------
+
+  # 元Yaginuma実装は0.0だが、
+  # 今回は1 stepがlow-level controlなので0.99を使用。
+  discount: 0.99
+
+  # 元実装と同じ
+  tau: 0.05
+
+  # normalized residual action [-1,1]に対する割合
+  exploration_noise: 0.10
+
+  policy_noise: 0.05
+
+  noise_clip: 0.10
+
+  policy_freq: 2
+
+  actor_lr: 0.0001
+
+  critic_lr: 0.001
+
+  # AdamWの標準値を明示
+  weight_decay: 0.01
+
+  # --------------------------------------------------
+  # Network
+  # --------------------------------------------------
+
+  actor_hidden_dim: 32
+
+  critic_hidden_dim: 128
+
+  # --------------------------------------------------
+  # Output
+  # --------------------------------------------------
+
+  checkpoint_interval: 500
+
+  log_interval: 100
+
+day12:
+  candidate_radii_mm:
+    - 0.0
+    - 10.0
+    - 12.5
+    - 15.0
+    - 17.5
+    - 20.0
+
+  episodes_per_radius: 10
+
+  direction_mode: random_angle
+
+  target_success_rate_min: 0.20
+  target_success_rate_max: 0.60
+
+  baseline_min_success_rate: 0.80
+
+  max_steps_per_episode: 600
+
+  seed: 1200
+
+  # Day12 calibration result:
+  # 8 directions x 4 trials = 32 episodes
+  # Reference-only success = 17 / 32 = 53.125 %
+  selected_radius_mm: 20.0
+
+
+day13:
+
+  # --------------------------------------------------
+  # Task
+  # --------------------------------------------------
+
+  # Day12 calibration result
+  train_radius_mm: 20.0
+
+  # Day12:
+  # Reference-only = 17 / 32
+  reference_baseline_success_rate: 0.53125
+
+  # --------------------------------------------------
+  # Training
+  # --------------------------------------------------
+
+  train_seed: 1300
+
+  # Day11 smokeより十分長く学習する
+  max_timesteps: 30000
+
+  # Replay Buffer初期収集
+  start_timesteps: 500
+
+  max_steps_per_episode: 600
+
+  # --------------------------------------------------
+  # Evaluation
+  # --------------------------------------------------
+
+  eval_seed: 1200
+
+  eval_interval: 5000
+
+  eval_num_directions: 32
+
+  # 定期評価
+  # 8 directions x 2 = 16 episodes
+  eval_episodes_per_direction: 2
+
+  # Day13終了時評価
+  # 8 directions x 4 = 32 episodes
+  final_eval_episodes_per_direction: 4
+
+  # --------------------------------------------------
+  # Logging / checkpoint
+  # --------------------------------------------------
+
+  checkpoint_interval: 5000
+
+  log_interval: 500
+
+  lift_threshold_m: 0.05
+
+  residual_saturation_threshold: 0.95
+
+
+day14:
+
+  # Day12 calibration result
+  radius_mm: 20.0
+
+  # Day13 best checkpoint
+  checkpoint: runs/day13_td3_seed1300/checkpoints/best.pt
+
+  # 32種類の異なる配置を評価
+  num_directions: 32
+
+  # 同じ方向を繰り返すより、
+  # 円周上32方向を1回ずつ評価する
+  episodes_per_direction: 1
+
+  eval_seed: 1200
+
+  max_steps_per_episode: 600
+
+  # Gate 2
+  gate_min_success_rate: 0.50
+  gate_min_improvement_percentage_points: 20.0
+
+  # Residual analysis
+  residual_saturation_threshold: 0.95
+
+
+day15:
+
+  # --------------------------------------------------
+  # Fixed Day14 evaluation condition
+  # --------------------------------------------------
+
+  checkpoint: runs/day13_td3_seed1300/checkpoints/best.pt
+
+  radius_mm: 20.0
+
+  num_directions: 32
+
+  episodes_per_direction: 1
+
+  eval_seed: 1200
+
+  max_steps_per_episode: 600
+
+  # --------------------------------------------------
+  # Failure classification thresholds
+  # --------------------------------------------------
+
+  # 正式な成功Lift高さ
+  lift_threshold_m: 0.05
+
+  # 「少なくともLift動作が始まった」とみなす高さ
+  lift_start_threshold_m: 0.005
+
+  # 安定把持とみなす連続両側接触step
+  stable_grasp_steps: 10
+
+  # 一度5 cm持ち上げた後、この程度以上落ちた場合
+  # drop_after_lift と分類
+  drop_margin_m: 0.01
+
+  # 初期Cube位置からXY方向へ3 cm以上移動した場合
+  # knocked_away の候補
+  knock_xy_threshold_m: 0.03
+
+  residual_saturation_threshold: 0.95

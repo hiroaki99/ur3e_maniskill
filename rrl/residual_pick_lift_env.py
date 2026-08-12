@@ -38,6 +38,10 @@ from rrl.residual_action import (
     ResidualActionComposer,
 )
 
+from rrl.reward import (
+    ResidualPickLiftReward,
+)
+
 
 # ==========================================================
 # Utilities
@@ -622,6 +626,23 @@ class ResidualPickLiftEnv(
             "cube_lift": [42, 43],
             "phase_progress": [43, 44],
         }
+
+        # --------------------------------------------------
+        # Day10 Reward
+        # --------------------------------------------------
+
+        self.reward_model = (
+            ResidualPickLiftReward(
+                config=self.config.get(
+                    "day10",
+                    {},
+                ),
+                observation_layout=(
+                    self.observation_layout
+                ),
+                alpha=self.alpha,
+            )
+        )
 
         # --------------------------------------------------
         # Runtime state
@@ -1434,6 +1455,36 @@ class ResidualPickLiftEnv(
                     >= self.success_hold_steps
                 )
 
+                if success:
+
+                    terminal_reason = (
+                        "success"
+                    )
+
+                elif (
+                    cube_lift
+                    < self.success_lift_height
+                ):
+
+                    terminal_reason = (
+                        "insufficient_lift"
+                    )
+
+                elif (
+                    self.final_both_contact_steps
+                    < self.success_hold_steps
+                ):
+
+                    terminal_reason = (
+                        "insufficient_final_hold"
+                    )
+
+                else:
+
+                    terminal_reason = (
+                        "task_failed"
+                    )
+
                 self._set_terminal(
                     "schedule_complete",
                     success,
@@ -1720,6 +1771,12 @@ class ResidualPickLiftEnv(
             1.0,
         )
 
+        previous_observation = (
+            self._get_observation(
+                self.last_metrics
+            ).copy()
+        )
+
         phase_before = int(
             self.phase
         )
@@ -1864,7 +1921,7 @@ class ResidualPickLiftEnv(
         )
 
         # Day9ではRewardを入れない。
-        reward = 0.0
+        # reward = 0.0
 
         terminated = (
             self.phase
@@ -1872,6 +1929,26 @@ class ResidualPickLiftEnv(
         )
 
         truncated = False
+
+        reward, reward_terms = (
+            self.reward_model.compute(
+                previous_observation=(
+                    previous_observation
+                ),
+                observation=(
+                    observation
+                ),
+                residual_action=(
+                    residual_action
+                ),
+                info=info,
+                terminated=terminated,
+            )
+        )
+
+        info[
+            "reward_terms"
+        ] = reward_terms
 
         return (
             observation,
