@@ -1,0 +1,139 @@
+project:
+  env_id: UR3ePickPlace-v0
+  obs_mode: state
+  control_mode: pd_joint_delta_pos
+  seed: 0
+robot:
+  uid: ur3e_ezgripper
+  base_position:
+  - 0.0
+  - 0.0
+  - 0.0
+  initial_arm_qpos:
+  - 0.0
+  - -1.5707963
+  - 1.5707963
+  - -1.5707963
+  - -1.5707963
+  - 0.0
+  initial_gripper_qpos:
+  - 0.27
+  - 0.27
+gripper:
+  open_action: -1.0
+  close_action: 1.0
+  pre_contact_action: 0.57
+  left_contact_links:
+  - gripper_ezgripper_finger_pad_1
+  right_contact_links:
+  - gripper_ezgripper_finger_pad_2
+  contact_force_threshold_n: 0.1
+  stable_grasp_force_n: 5.0
+  grasp_center_distance_threshold_m: 0.04
+  release_open_qpos_threshold: -1.2
+cube:
+  size: 0.05
+  mass: 0.1
+  position:
+  - 0.4
+  - 0.0
+  - 0.025
+  orientation_wxyz:
+  - 1.0
+  - 0.0
+  - 0.0
+  - 0.0
+table:
+  surface_z: 0.0
+pick_place:
+  goal_position:
+  - 0.4
+  - 0.12
+  - 0.025
+  goal_candidate_y_m:
+  - 0.1
+  - 0.12
+  - 0.15
+  goal_xy_tolerance_m: 0.015
+  goal_z_tolerance_m: 0.005
+  stable_linear_velocity_mps: 0.02
+  stable_angular_velocity_radps: 0.2
+  stable_steps: 10
+  grasp_center_offset_m:
+  - 0.0
+  - 0.0
+  - 0.015
+  transport_height_m: 0.055
+  retreat_height_m: 0.1
+  transport_waypoints: 25
+  descend_place_waypoints: 20
+  retreat_waypoints: 20
+  control_steps_per_waypoint: 4
+  reset_precontact_steps: 60
+  pregrasp_hold_steps: 10
+  grasp_ramp_steps: 100
+  bilateral_contact_streak: 3
+  squeeze_margin_action: 0.05
+  pre_lift_hold_steps: 30
+  pre_lift_required_contact_ratio: 0.8
+  release_ramp_steps: 80
+  release_hold_steps: 20
+  final_settle_steps: 40
+  success_lift_height_m: 0.05
+  reference_eval_episodes: 32
+  max_episode_steps: 1200
+  min_joint_limit_margin_rad: 0.1
+ik:
+  epsilon_rad: 0.002
+  damping: 0.03
+  tolerance_m: 0.0015
+  max_iterations: 40
+  max_step_rad: 0.04
+control:
+  max_joint_delta_rad: 0.03
+safety:
+  collision_instrumentation_validated: false
+  table_contact_force_threshold_n: 5.0
+  ignored_table_contact_links: []
+residual_pick_place:
+  alpha: 0.2
+  transport_drop_threshold_m: 0.02
+  minimum_lift_after_lift_m: 0.04
+randomization:
+  sampling: area_uniform_disk
+  cube_radius_min_m: 0.0
+  cube_radius_max_m: 0.01
+  goal_radius_min_m: 0.0
+  goal_radius_max_m: 0.01
+observation_scaling:
+  cube_to_grasp: 10.0
+  cube_to_goal: 10.0
+  grasp_to_goal: 10.0
+reward_pick_place:
+  approach_progress_scale_m: 0.01
+  approach_progress_weight: 0.2
+  bilateral_contact_bonus: 0.05
+  hold_contact_bonus: 0.02
+  lift_progress_weight: 50.0
+  max_lift_delta_per_step_m: 0.01
+  transport_progress_scale_m: 0.01
+  transport_progress_weight: 0.3
+  place_progress_scale_m: 0.01
+  place_progress_weight: 0.3
+  release_bonus: 0.5
+  stable_step_bonus: 0.02
+  success_bonus: 10.0
+  failure_penalty: 5.0
+  residual_penalty_weight: 0.05
+  enable_excessive_force_penalty: false
+  max_safe_gripper_force_n: 100.0
+  excessive_force_penalty_weight: 0.2
+  enable_unsafe_collision_penalty: false
+  unsafe_collision_penalty: 5.0
+week2:
+  zero_equivalence_episodes: 32
+  zero_equivalence_min_success_rate: 0.95
+  randomization_test_radius_mm: 10.0
+  observation_audit_episodes: 16
+  observation_audit_radius_mm: 10.0
+  training_interface_smoke_directions: 4

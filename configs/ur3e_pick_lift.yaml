@@ -437,3 +437,128 @@ day15:
   knock_xy_threshold_m: 0.03
 
   residual_saturation_threshold: 0.95
+
+
+day16:
+
+  # Day13 best checkpointを固定して比較
+  checkpoint: runs/day13_td3_seed1300/checkpoints/best.pt
+
+  # Day12で決定した評価摂動
+  radius_mm: 20.0
+
+  # Day14/15と同一評価条件
+  num_directions: 32
+  episodes_per_direction: 1
+  eval_seed: 1200
+
+  max_steps_per_episode: 600
+
+  # --------------------------------------------------
+  # 今回変更する唯一のパラメータ
+  # --------------------------------------------------
+
+  candidate_lift_residual_scales:
+    - 1.00
+    - 0.75
+    - 0.50
+
+  # Day16終了後に決定する。
+  # この時点ではnullのまま。
+  selected_lift_residual_scale: null
+
+  # --------------------------------------------------
+  # Day15で最多だったLift系失敗
+  # --------------------------------------------------
+
+  target_failure_causes:
+    - insufficient_lift
+    - no_lift_after_grasp
+
+  residual_saturation_threshold: 0.95
+
+
+day17:
+
+  # Day17で変更する唯一の表現パラメータ
+  cube_to_grasp_scale: 10.0
+
+  train_radius_mm: 20.0
+
+  # Day13と同じseedにする
+  train_seed: 1300
+  eval_seed: 1200
+
+  # 50kまで学習するが、
+  # 30k checkpointをDay13との同step比較に使う
+  max_timesteps: 50000
+  hypothesis_comparison_step: 30000
+
+  start_timesteps: 500
+  max_steps_per_episode: 600
+
+  eval_interval: 5000
+
+  periodic_eval_num_directions: 16
+  periodic_eval_episodes_per_direction: 1
+
+  checkpoint_interval: 5000
+  log_interval: 500
+
+  candidate_count: 3
+
+  final_eval_num_directions: 32
+  final_eval_episodes_per_direction: 1
+
+  lift_threshold_m: 0.05
+  residual_saturation_threshold: 0.95
+
+  gate_min_success_rate: 0.60
+
+
+day18:
+
+  # Day18では学習せず候補checkpointを再評価する
+  radius_mm: 20.0
+
+  # Day17のcheckpoint選択では1200を使用済み。
+  # 最終選択ではheld-out seedを使う。
+  eval_seed: 1800
+
+  # 64方向 × 1 episode
+  # 5.625度刻みで20 mm円周を評価
+  num_directions: 64
+  episodes_per_direction: 1
+
+  max_steps_per_episode: 600
+
+  lift_threshold_m: 0.05
+  residual_saturation_threshold: 0.95
+
+  # Gate3
+  gate_min_success_rate: 0.60
+
+  selected_checkpoint: null
+  selected_cube_to_grasp_scale: null
+
+
+day19:
+  eval_seed: 1900
+
+  final_checkpoint: runs/day18_final/checkpoints/final_selected.pt
+  final_metadata: runs/day18_final/final_policy_metadata.json
+
+  cube_to_grasp_scale: 10.0
+
+  nominal_radius_mm: 0.0
+  nominal_episodes: 64
+
+  perturb_radius_mm: 20.0
+  perturb_num_directions: 64
+  perturb_episodes_per_direction: 1
+
+  max_steps_per_episode: 600
+
+  target_success_rate: 0.60
+
+  collision_instrumentation_validated: false

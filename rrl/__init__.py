@@ -5,6 +5,8 @@ from .replay_buffer import ReplayBuffer
 from .td3 import TD3
 from .task_perturbation import CubePositionPerturbationWrapper
 from .evaluation import evaluate_residual_policy
+from .residual_phase_scaling import LiftResidualScaleWrapper
+
 
 __all__ = [
     "ResidualActionComposer",
@@ -14,4 +16,5 @@ __all__ = [
     "TD3",
     "CubePositionPerturbationWrapper",
     "evaluate_residual_policy",
+    "LiftResidualScaleWrapper",
 ]
