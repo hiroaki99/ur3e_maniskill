@@ -58,9 +58,22 @@ def run_episode(env, policy=None, *, max_steps=1200, seed=None):
         observation = np.asarray(observation, dtype=np.float32)
         total_return += float(reward)
         max_lift = max(max_lift, float(info.get("max_cube_lift_m", 0.0)))
-        max_residual_l2 = max(max_residual_l2, float(np.linalg.norm(action)))
-        max_abs_residual = max(max_abs_residual, float(np.max(np.abs(action))))
-        if np.any(np.abs(action) >= 0.999):
+        applied_residual = np.asarray(
+            info.get("applied_residual_action", action),
+            dtype=np.float32,
+        ).reshape(-1)
+
+        max_residual_l2 = max(
+            max_residual_l2,
+            float(np.linalg.norm(applied_residual)),
+        )
+
+        max_abs_residual = max(
+            max_abs_residual,
+            float(np.max(np.abs(applied_residual))),
+        )
+
+        if np.any(np.abs(applied_residual) >= 0.999):
             saturation_steps += 1
         final_info = dict(info)
         if terminated or truncated:

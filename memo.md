@@ -806,3 +806,89 @@ right contact steps: 28
 both contact steps: 28
 report: reports/day4_contact_detection_center_kinematic.json
 
+
+
+
+(maniskill) ito-marl@ubuntu:~/ur3e_maniskill$ python scripts_pickplace/pickplace_day01_scan_goal_reachability.py \
+  --sim-backend physx_cpu \
+  --output-dir reports/pickplace_week1/day01_reachability
+========================================================================
+Pick-and-Place Day1 Goal Reachability Scan
+========================================================================
+validated lift grasp center: [0.29854996947631157, 0.13105002629520085, 0.15684976079642063]
+candidate goal y: [0.1, 0.12, 0.15]
+
+goal_y=0.100 m reachable=True max_err=3.557268607779924e-05 margin=1.6666038468142224
+goal_y=0.120 m reachable=True max_err=4.248943071623969e-05 margin=1.6680594409849214
+goal_y=0.150 m reachable=True max_err=6.150522915208786e-05 margin=1.668019740302957
+
+selected goal: {'goal_x_m': np.float64(0.4), 'goal_y_m': np.float64(0.12), 'goal_z_m': np.float64(0.025), 'transport_final_error_m': 4.248943071623969e-05, 'place_final_error_m': 3.5174695373007594e-05, 'retreat_final_error_m': 2.685502184067876e-05, 'max_final_error_m': 4.248943071623969e-05, 'min_joint_limit_margin_rad': 1.6680594409849214, 'joint_path_length_rad': 0.687880079373986, 'reachable': True, 'error': ''}
+summary: reports/pickplace_week1/day01_reachability/summary.json
+(maniskill) ito-marl@ubuntu:~/ur3e_maniskill$ cat reports/pickplace_week1/day01_reachability/summary.json
+{
+  "candidate_count": 3,
+  "reachable_count": 3,
+  "selected_goal": {
+    "goal_x_m": 0.4,
+    "goal_y_m": 0.12,
+    "goal_z_m": 0.025,
+    "transport_final_error_m": 4.248943071623969e-05,
+    "place_final_error_m": 3.5174695373007594e-05,
+    "retreat_final_error_m": 2.685502184067876e-05,
+    "max_final_error_m": 4.248943071623969e-05,
+    "min_joint_limit_margin_rad": 1.6680594409849214,
+    "joint_path_length_rad": 0.687880079373986,
+    "reachable": true,
+    "error": ""
+  },
+  "note": "Day1 is kinematic screening only. Day4/Day5 must verify the selected goal dynamically while carrying the cube."
+(maniskill) ito-marl@ubuntu:~/ur3e_maniskill$ python scripts_pickplace/pickplace_day02_test_env_and_success.py   --sim-backend physx_cpu
+center_open_stable           success=True expected=True passed=True
+offset_10mm                  success=True expected=True passed=True
+offset_20mm                  success=False expected=False passed=True
+center_closed                success=False expected=False passed=True
+center_before_stable_count   success=False expected=False passed=True
+center_moving                success=False expected=False passed=True
+PASSED: True
+report: reports/pickplace_week1/day02_success_test.json
+(maniskill) ito-marl@ubuntu:~/ur3e_maniskill$ python scripts_pickplace/pickplace_day03_audit_safety.py \
+  --steps 120 \
+  --sim-backend physx_cpu
+========================================================================
+Day3 Robot-Table Contact Audit
+========================================================================
+candidate contact steps: 0 / 120
+collision rate reportable: False
+top robot-table forces:
+  world                                            0.0000 N
+  base_link                                        0.0000 N
+  base_link_inertia                                0.0000 N
+  base                                             0.0000 N
+  shoulder_link                                    0.0000 N
+  upper_arm_link                                   0.0000 N
+  forearm_link                                     0.0000 N
+  wrist_1_link                                     0.0000 N
+  wrist_2_link                                     0.0000 N
+  wrist_3_link                                     0.0000 N
+  ft_frame                                         0.0000 N
+  flange                                           0.0000 N
+  tool0                                            0.0000 N
+  gripper_ezgripper_mount                          0.0000 N
+  gripper_ezgripper_palm_link                      0.0000 N
+report: reports/pickplace_week1/day03_safety_audit.json
+(maniskill) ito-marl@ubuntu:~/ur3e_maniskill$ python scripts_pickplace/pickplace_day04_plan_reference.py \
+  --base-trajectory trajectories/day6_pick_lift_reference_v2.json \
+  --sim-backend physx_cpu \
+  --output trajectories/pick_place_reference_v1.json
+========================================================================
+Pick-and-Place Day4 Reference Planner
+========================================================================
+goal center      : [0.4, 0.12, 0.025]
+transport target : [0.4, 0.12, 0.095]
+place target     : [0.4, 0.12, 0.04]
+retreat target   : [0.4, 0.12, 0.14]
+transport final error: 4.248943071623969e-05
+place final error    : 3.5174695373007594e-05
+retreat final error  : 2.685502184067876e-05
+total waypoints      : 120
+output: trajectories/pick_place_reference_v1.json

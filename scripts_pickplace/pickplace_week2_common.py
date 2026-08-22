@@ -86,10 +86,30 @@ def build_env(
         seed=int(seed),
     )
 
+    residual_enabled_phases = None
+
+    phase_gate_cfg = (
+        config
+        .get("residual_pick_place", {})
+        .get("goal_only_phase_gating", {})
+    )
+
+    if (
+        randomization_mode == "goal_only"
+        and bool(phase_gate_cfg.get("enabled", False))
+    ):
+        residual_enabled_phases = list(
+            phase_gate_cfg.get(
+                "enabled_phases",
+                ["transport", "descend_place"],
+            )
+        )
+
     residual = ResidualPickPlaceEnv(
         env=randomized,
         trajectory_path=trajectory,
         config_path=CONFIG_PATH,
+        residual_enabled_phases=residual_enabled_phases,
     )
 
     if not apply_scaling:

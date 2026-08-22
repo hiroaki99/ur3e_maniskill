@@ -99,6 +99,12 @@ residual_pick_place:
   alpha: 0.2
   transport_drop_threshold_m: 0.02
   minimum_lift_after_lift_m: 0.04
+
+  goal_only_phase_gating:
+    enabled: true
+    enabled_phases:
+      - transport
+      - descend_place
 randomization:
   sampling: area_uniform_disk
   cube_radius_min_m: 0.0

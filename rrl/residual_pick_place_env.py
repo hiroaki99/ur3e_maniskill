@@ -114,6 +114,7 @@ class ResidualPickPlaceEnv(gym.Wrapper):
         trajectory_path: str | Path,
         config_path: str | Path,
         alpha: float | None = None,
+        residual_enabled_phases: list[str] | tuple[str, ...] | None = None,
     ):
         super().__init__(env)
         self.trajectory_path = Path(trajectory_path)
@@ -130,6 +131,18 @@ class ResidualPickPlaceEnv(gym.Wrapper):
         self.alpha = float(
             alpha if alpha is not None else self.residual_cfg.get("alpha", 0.20)
         )
+        if residual_enabled_phases is None:
+            self.residual_enabled_phases = None
+        else:
+            unknown_phases = set(residual_enabled_phases) - set(self.PHASE_NAMES)
+            if unknown_phases:
+                raise ValueError(
+                    f"unknown residual phases: {sorted(unknown_phases)}"
+                )
+
+            self.residual_enabled_phases = frozenset(
+                str(name) for name in residual_enabled_phases
+            )
         self.max_joint_delta = float(self.config["control"]["max_joint_delta_rad"])
         if self.max_joint_delta <= 0:
             raise ValueError("control.max_joint_delta_rad must be > 0")
@@ -369,6 +382,18 @@ class ResidualPickPlaceEnv(gym.Wrapper):
                 + ratio * (self.open_action - self.hold_gripper_action)
             )
         return self.open_action
+
+    def _residual_gate(self, phase: int) -> float:
+        if self.residual_enabled_phases is None:
+            return 1.0
+
+        phase_name = self.PHASE_NAMES[int(phase)]
+
+        return (
+            1.0
+            if phase_name in self.residual_enabled_phases
+            else 0.0
+        )
 
     def _compose_arm_action(self, reference_qpos, residual_action):
         current = self._arm_qpos()
@@ -615,8 +640,19 @@ class ResidualPickPlaceEnv(gym.Wrapper):
         reference_qpos = self._current_reference_qpos().copy()
         gripper_action = self._current_gripper_action()
 
+        # Actorが出力した元のResidual
+        requested_residual_action = residual_action.copy()
+
+        # 現在phaseでResidualを使用するか
+        residual_gate = self._residual_gate(phase_before)
+
+        # 実際にReferenceへ加算するResidual
+        applied_residual_action = (
+            residual_gate * requested_residual_action
+        ).astype(np.float32)
+
         info, metrics, base_terminated, base_truncated = self._execute_low_level(
-            reference_qpos, residual_action, gripper_action
+            reference_qpos, applied_residual_action, gripper_action
         )
         self.last_metrics = metrics
         self.episode_step += 1
@@ -639,6 +675,16 @@ class ResidualPickPlaceEnv(gym.Wrapper):
             {
                 "phase_before": phase_before,
                 "phase_name_before": phase_name_before,
+
+                "residual_gate": float(residual_gate),
+                "requested_residual_action": requested_residual_action.copy(),
+                "applied_residual_action": applied_residual_action.copy(),
+                "residual_enabled_phases": (
+                    None
+                    if self.residual_enabled_phases is None
+                    else sorted(self.residual_enabled_phases)
+                ),
+
                 "phase": int(self.phase),
                 "phase_name": self.PHASE_NAMES[self.phase],
                 "phase_step": int(self.phase_step),
@@ -672,7 +718,7 @@ class ResidualPickPlaceEnv(gym.Wrapper):
         reward, reward_terms = self.reward_model.compute(
             previous_observation=previous_observation,
             observation=observation,
-            residual_action=residual_action,
+            residual_action=applied_residual_action,
             info=info,
             terminated=terminated,
         )
