@@ -88,20 +88,23 @@ def build_env(
 
     residual_enabled_phases = None
 
-    phase_gate_cfg = (
-        config
-        .get("residual_pick_place", {})
-        .get("goal_only_phase_gating", {})
+    residual_cfg = config.get(
+        "residual_pick_place",
+        {},
     )
 
-    if (
-        randomization_mode == "goal_only"
-        and bool(phase_gate_cfg.get("enabled", False))
-    ):
+    phase_gate_key = f"{randomization_mode}_phase_gating"
+
+    phase_gate_cfg = residual_cfg.get(
+        phase_gate_key,
+        {},
+    )
+
+    if bool(phase_gate_cfg.get("enabled", False)):
         residual_enabled_phases = list(
             phase_gate_cfg.get(
                 "enabled_phases",
-                ["transport", "descend_place"],
+                []
             )
         )
 

@@ -105,6 +105,18 @@ residual_pick_place:
     enabled_phases:
       - transport
       - descend_place
+
+  both_phase_gating:
+    enabled: true
+    enabled_phases:
+      - to_pregrasp
+      - descend
+      - grasp
+      - stable_hold
+      - lift
+      - transport
+      - descend_place
+      
 randomization:
   sampling: area_uniform_disk
   cube_radius_min_m: 0.0
