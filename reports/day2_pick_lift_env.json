@@ -1,0 +1,101 @@
+{
+  "env_id": "UR3ePickLift-v0",
+  "robot_uid": "ur3e_ezgripper",
+  "control_mode": "pd_joint_delta_pos",
+  "sim_backend": "physx_cpu",
+  "observation_shape": [
+    1,
+    34
+  ],
+  "action_shape": [
+    7
+  ],
+  "action_low": [
+    -1.0,
+    -1.0,
+    -1.0,
+    -1.0,
+    -1.0,
+    -1.0,
+    -1.0
+  ],
+  "action_high": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+  ],
+  "joint_names": [
+    "shoulder_pan_joint",
+    "shoulder_lift_joint",
+    "elbow_joint",
+    "wrist_1_joint",
+    "wrist_2_joint",
+    "wrist_3_joint",
+    "gripper_ezgripper_knuckle_palm_L1_1",
+    "gripper_ezgripper_knuckle_palm_L1_2"
+  ],
+  "link_names": [
+    "world",
+    "base_link",
+    "base_link_inertia",
+    "base",
+    "shoulder_link",
+    "upper_arm_link",
+    "forearm_link",
+    "wrist_1_link",
+    "wrist_2_link",
+    "wrist_3_link",
+    "ft_frame",
+    "flange",
+    "tool0",
+    "gripper_ezgripper_mount",
+    "gripper_ezgripper_palm_link",
+    "gripper_ezgripper_finger_L1_1",
+    "gripper_ezgripper_finger_L1_2",
+    "grasp_tcp",
+    "gripper_ezgripper_finger_L2_1",
+    "gripper_ezgripper_finger_L2_2",
+    "gripper_ezgripper_finger_pad_1",
+    "gripper_ezgripper_finger_pad_2"
+  ],
+  "initial_qpos": [
+    0.0,
+    -1.570796251296997,
+    1.570796251296997,
+    -1.570796251296997,
+    -1.570796251296997,
+    0.0,
+    0.27000001072883606,
+    0.27000001072883606
+  ],
+  "final_qpos": [
+    6.087451311032055e-06,
+    -1.5708290338516235,
+    1.570932388305664,
+    -1.5714644193649292,
+    -1.570796251296997,
+    6.071779353078455e-06,
+    -0.6503711342811584,
+    -0.6503711342811584
+  ],
+  "max_qpos_drift": 0.9203711450099945,
+  "initial_cube_position": [
+    0.4000000059604645,
+    0.0,
+    0.02500000037252903
+  ],
+  "final_cube_position": [
+    0.39999979734420776,
+    -6.972633173063514e-07,
+    0.024999871850013733
+  ],
+  "cube_xy_drift_m": 7.278027728899938e-07,
+  "cube_z_error_m": 1.2814998626847762e-07,
+  "mean_reward": 0.08613511547446251,
+  "warnings": [],
+  "errors": []
+}

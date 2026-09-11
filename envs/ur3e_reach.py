@@ -24,6 +24,14 @@ class UR3eReachEnv(BaseEnv):
 
     goal_radius = 0.03
 
+    # 固定rest姿勢に対する目標位置。
+    # diagnose_ur3e_reach.pyの結果から設定。
+    fixed_goal_position = (
+        0.33855,
+        0.13105,
+        0.34330,
+    )
+
     def __init__(
         self,
         *args,
@@ -60,6 +68,59 @@ class UR3eReachEnv(BaseEnv):
             name="goal_site",
         )
 
+    # def _initialize_episode(
+    #     self,
+    #     env_idx: torch.Tensor,
+    #     options: dict,
+    # ):
+    #     with torch.device(self.device):
+    #         batch_size = len(env_idx)
+
+    #         # agents/ur3e.pyで定義したrest姿勢
+    #         qpos = torch.tensor(
+    #             [
+    #                 0.0,
+    #                 -np.pi / 2,
+    #                 np.pi / 2,
+    #                 -np.pi / 2,
+    #                 -np.pi / 2,
+    #                 0.0,
+    #             ],
+    #             dtype=torch.float32,
+    #         ).repeat(batch_size, 1)
+
+    #         qpos += (
+    #             torch.randn((batch_size, 6))
+    #             * self.robot_init_qpos_noise
+    #         )
+
+    #         self.agent.reset(qpos)
+
+    #         # 初期TCP位置の近傍に目標を設定する。
+    #         # 最初から広いワークスペース全域を使わない。
+    #         tcp_position = self.agent.tcp.pose.p[env_idx]
+
+    #         # offset = torch.zeros((batch_size, 3))
+    #         # offset[:, 0] = torch.rand(batch_size) * 0.12 - 0.06
+    #         # offset[:, 1] = torch.rand(batch_size) * 0.12 - 0.06
+    #         # offset[:, 2] = torch.rand(batch_size) * 0.10 + 0.03
+
+    #         offset = torch.tensor(
+    #             [0.04, 0.0, 0.04],
+    #             dtype=torch.float32,
+    #             device=self.device,
+    #         ).repeat(batch_size, 1)
+
+
+    #         goal_position = tcp_position + offset
+
+    #         self.goal_site.set_pose(
+    #             Pose.create_from_pq(
+    #                 p=goal_position,
+    #                 q=[1.0, 0.0, 0.0, 0.0],
+    #             )
+    #         )
+
     def _initialize_episode(
         self,
         env_idx: torch.Tensor,
@@ -68,7 +129,6 @@ class UR3eReachEnv(BaseEnv):
         with torch.device(self.device):
             batch_size = len(env_idx)
 
-            # agents/ur3e.pyで定義したrest姿勢
             qpos = torch.tensor(
                 [
                     0.0,
@@ -79,32 +139,61 @@ class UR3eReachEnv(BaseEnv):
                     0.0,
                 ],
                 dtype=torch.float32,
+                device=self.device,
             ).repeat(batch_size, 1)
 
             qpos += (
-                torch.randn((batch_size, 6))
+                torch.randn(
+                    (batch_size, 6),
+                    device=self.device,
+                )
                 * self.robot_init_qpos_noise
             )
 
             self.agent.reset(qpos)
 
-            # 初期TCP位置の近傍に目標を設定する。
-            # 最初から広いワークスペース全域を使わない。
-            tcp_position = self.agent.tcp.pose.p[env_idx]
+            # reset直後のTCP poseには依存しない
+            # goal_position = torch.tensor(
+            #     self.fixed_goal_position,
+            #     dtype=torch.float32,
+            #     device=self.device,
+            # ).repeat(batch_size, 1)
 
-            # offset = torch.zeros((batch_size, 3))
-            # offset[:, 0] = torch.rand(batch_size) * 0.12 - 0.06
-            # offset[:, 1] = torch.rand(batch_size) * 0.12 - 0.06
-            # offset[:, 2] = torch.rand(batch_size) * 0.10 + 0.03
-
-            offset = torch.tensor(
-                [0.04, 0.0, 0.04],
+            # random化
+            base_goal_position = torch.tensor(
+                self.fixed_goal_position,
                 dtype=torch.float32,
                 device=self.device,
             ).repeat(batch_size, 1)
 
+            random_offset = torch.zeros(
+                (batch_size, 3),
+                dtype=torch.float32,
+                device=self.device,
+            )
 
-            goal_position = tcp_position + offset
+            random_offset[:, 0] = (
+                torch.rand(batch_size, device=self.device)
+                * 0.02
+                - 0.01
+            )
+
+            random_offset[:, 1] = (
+                torch.rand(batch_size, device=self.device)
+                * 0.02
+                - 0.01
+            )
+
+            random_offset[:, 2] = (
+                torch.rand(batch_size, device=self.device)
+                * 0.02
+                - 0.01
+            )
+
+            goal_position = (
+                base_goal_position
+                + random_offset
+            )
 
             self.goal_site.set_pose(
                 Pose.create_from_pq(
@@ -142,18 +231,22 @@ class UR3eReachEnv(BaseEnv):
 
         reaching_reward = 1.0 - torch.tanh(10.0 * distance)
 
-        success_bonus = 2.0 * info["success"].float()
+        # success_bonus = 2.0 * info["success"].float()
 
-        action_penalty = 0.005 * torch.sum(
-            torch.square(action),
-            dim=1,
-        )
+        # action_penalty = 0.005 * torch.sum(
+        #     torch.square(action),
+        #     dim=1,
+        # )
 
-        reward = (
-            reaching_reward
-            + success_bonus
-            - action_penalty
-        )
+        # reward = (
+        #     reaching_reward
+        #     + success_bonus
+        #     - action_penalty
+        # )
+
+        reward = reaching_reward.clone()
+
+        reward[info["success"]] = 3.0
 
         return reward
 

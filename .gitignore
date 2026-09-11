@@ -3,6 +3,12 @@ runs/
 logs/
 videos/
 checkpoints/
+*.json
+*.log
+*.csv
+*.pyc
+
+.md
 
 # 学習済みモデル
 *.pt

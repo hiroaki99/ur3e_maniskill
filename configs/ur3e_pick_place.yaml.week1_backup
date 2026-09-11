@@ -1,0 +1,98 @@
+project:
+  env_id: "UR3ePickPlace-v0"
+  obs_mode: "state"
+  control_mode: "pd_joint_delta_pos"
+  seed: 0
+
+robot:
+  uid: "ur3e_ezgripper"
+  base_position: [0.0, 0.0, 0.0]
+  initial_arm_qpos:
+    - 0.0
+    - -1.5707963
+    - 1.5707963
+    - -1.5707963
+    - -1.5707963
+    - 0.0
+  initial_gripper_qpos: [0.27, 0.27]
+
+gripper:
+  open_action: -1.0
+  close_action: 1.0
+  pre_contact_action: 0.57
+  left_contact_links:
+    - "gripper_ezgripper_finger_pad_1"
+  right_contact_links:
+    - "gripper_ezgripper_finger_pad_2"
+  contact_force_threshold_n: 0.1
+  stable_grasp_force_n: 5.0
+  grasp_center_distance_threshold_m: 0.04
+  release_open_qpos_threshold: -1.20
+
+cube:
+  size: 0.05
+  mass: 0.10
+  position: [0.40, 0.00, 0.025]
+  orientation_wxyz: [1.0, 0.0, 0.0, 0.0]
+
+table:
+  surface_z: 0.0
+
+pick_place:
+  # Day1で 0.10 / 0.12 / 0.15 m を走査し、結果を見て必要なら変更する。
+  goal_position: [0.40, 0.12, 0.025]
+  goal_candidate_y_m: [0.10, 0.12, 0.15]
+
+  # Success = 位置 + release + 安定保持
+  goal_xy_tolerance_m: 0.015
+  goal_z_tolerance_m: 0.005
+  stable_linear_velocity_mps: 0.02
+  stable_angular_velocity_radps: 0.20
+  stable_steps: 10
+
+  # Reference trajectory
+  grasp_center_offset_m: [0.0, 0.0, 0.015]
+  transport_height_m: 0.055
+  retreat_height_m: 0.10
+
+  transport_waypoints: 25
+  descend_place_waypoints: 20
+  retreat_waypoints: 20
+
+  control_steps_per_waypoint: 4
+  reset_precontact_steps: 60
+  pregrasp_hold_steps: 10
+
+  grasp_ramp_steps: 100
+  bilateral_contact_streak: 3
+  squeeze_margin_action: 0.05
+  pre_lift_hold_steps: 30
+  pre_lift_required_contact_ratio: 0.80
+
+  release_ramp_steps: 80
+  release_hold_steps: 20
+  final_settle_steps: 40
+
+  success_lift_height_m: 0.05
+  reference_eval_episodes: 32
+  max_episode_steps: 1200
+
+  # Day1 reachability gate
+  min_joint_limit_margin_rad: 0.10
+
+ik:
+  epsilon_rad: 0.002
+  damping: 0.03
+  tolerance_m: 0.0015
+  max_iterations: 40
+  max_step_rad: 0.04
+
+control:
+  max_joint_delta_rad: 0.03
+
+safety:
+  # Week1ではraw contact forceを監査するだけ。
+  # Positive-controlで妥当性を確認するまではcollision rateを報告しない。
+  collision_instrumentation_validated: false
+  table_contact_force_threshold_n: 5.0
+  ignored_table_contact_links: []

@@ -1,0 +1,2 @@
+1886b78c6f374a9fa385cdb75a66c0a62e2b1f44252015719fe7b3609a5f85aa  configs/ur3e_pick_place.yaml
+608ac75c9300ed8906f960a552a075809fcd990a07d4c0067baac3daad4564b6  trajectories/pick_place_reference_v1.json

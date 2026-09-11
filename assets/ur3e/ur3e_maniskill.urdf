@@ -287,7 +287,17 @@
     <origin rpy="0 -1.5707963267948966 -1.5707963267948966" xyz="0 0 0"/>
   </joint>
   <!-- ROS-Industrial 'tool0' frame - all-zeros tool frame -->
-  <link name="tool0"/>
+  <link name="tool0">
+  <visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <sphere radius="0.012"/>
+    </geometry>
+    <material name="tcp_green">
+      <color rgba="0 1 0 1"/>
+    </material>
+  </visual>
+</link>
   <joint name="flange-tool0" type="fixed">
     <!-- default toolframe - X+ left, Y+ up, Z+ front -->
     <origin rpy="1.5707963267948966 0 1.5707963267948966" xyz="0 0 0"/>

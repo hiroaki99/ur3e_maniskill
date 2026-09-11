@@ -95,12 +95,12 @@ class UR3e(BaseAgent):
         pd_joint_target_delta_pos.use_target = True
 
         controller_configs = {
-            "pd_joint_pos": {
-                "arm": pd_joint_pos,
-            },
             "pd_joint_delta_pos": {
                 "arm": pd_joint_delta_pos,
             },
+            "pd_joint_pos": {
+                "arm": pd_joint_pos,
+            }, 
             "pd_joint_target_delta_pos": {
                 "arm": pd_joint_target_delta_pos,
             },
