@@ -59,3 +59,6 @@ scripts_expert/evaluate_alignment_grasp_multiseed.py
 scripts_expert/evaluate_alignment_grasp_multiseed_adaptive.py
 scripts_expert/evaluate_alignment_grasp_multiseed_orientation_locked.py
 scripts_expert/evaluate_alignment_grasp_multiseed_orientation_locked_adaptive.py
+
+# 実機 UR3e で取得した FK 検証データ（*.json の例外として git に含める）
+!scripts_sim2real/fk_validation_pose*.json
