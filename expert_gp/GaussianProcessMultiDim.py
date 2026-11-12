@@ -14,8 +14,8 @@ class GPMD:
         self.__gp = [ GaussianProcess.GP() for d in range(self.__dim) ]
 
     def learn(self,x, y ):
-        y = np.array(y, dtype=np.float).reshape( (-1,self.__dim) )
-        x = np.array(x,dtype=np.float)
+        y = np.array(y, dtype=np.float64).reshape( (-1,self.__dim) )
+        x = np.array(x,dtype=np.float64)
 
         for d in range(self.__dim):
             if len(y)!=0:
@@ -28,7 +28,7 @@ class GPMD:
         lik = 0.0
 
         if self.__dim==1:
-            y = np.asarray(y, dtype=np.float).reshape( (-1,self.__dim) )
+            y = np.asarray(y, dtype=np.float64).reshape( (-1,self.__dim) )
         #x = np.asarray(x,dtype=np.float)
         for d in range(self.__dim):
             lik += self.__gp[d].calc_lik( x , y[:,d] )

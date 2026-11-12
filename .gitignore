@@ -7,6 +7,8 @@ checkpoints/
 *.log
 *.csv
 *.pyc
+*.png
+*.npz
 
 .md
 
@@ -14,3 +16,46 @@ checkpoints/
 *.pt
 *.pth
 *.ckpt
+# キャッシュ・エディタ設定
+__pycache__/
+*.code-workspace
+
+# 生成物（scripts_expert/generate_expert_gps.py などで再生成できる）
+reports/expert_gp/
+
+# バックアップ・スナップショット（現行版と同じ内容、または旧版）
+*_before_*.py
+*_before_*.yaml
+*_PHASE5B2_PASS.*
+
+# scripts_expert: 単体テスト・開発途中の旧版
+# ※ test_alignment_grasp_A_yaw_aware.py / test_alignment_grasp_A_fixed_643_strict.py /
+#    test_phase6_residual_injection.py は本体なので除外しない
+scripts_expert/test_gp_import.py
+scripts_expert/test_gp_minimal.py
+scripts_expert/test_expert_coordinate_mapper.py
+scripts_expert/test_expert_correction_strict.py
+scripts_expert/test_expert_end_correction_strict.py
+scripts_expert/test_expert06_maniskill_mapping.py
+scripts_expert/test_expert06_maniskill_ik_dryrun.py
+scripts_expert/test_expert06_physical_first5.py
+scripts_expert/test_expert06_physical_full.py
+scripts_expert/test_expert_physical_full.py
+scripts_expert/test_fixed_sequence_643_begin_correction_kinematic.py
+scripts_expert/test_alignment_env.py
+scripts_expert/test_alignment_grasp_A.py
+scripts_expert/test_alignment_grasp_A_diagnostic.py
+scripts_expert/test_alignment_grasp_A_pose_diagnostic.py
+scripts_expert/test_alignment_grasp_A_yaw_diagnostic.py
+scripts_expert/test_alignment_grasp_A_actual_state_replan.py
+scripts_expert/test_alignment_grasp_A_adaptive.py
+scripts_expert/test_alignment_grasp_A_orientation_locked.py
+scripts_expert/test_alignment_grasp_A_orientation_locked_adaptive.py
+scripts_expert/test_alignment_grasp_A_expert06_strict.py
+scripts_expert/test_phase6_residual_contract.py
+scripts_expert/test_phase6_td3_core.py
+scripts_expert/analyze_alignment_grasp_multiseed.py
+scripts_expert/evaluate_alignment_grasp_multiseed.py
+scripts_expert/evaluate_alignment_grasp_multiseed_adaptive.py
+scripts_expert/evaluate_alignment_grasp_multiseed_orientation_locked.py
+scripts_expert/evaluate_alignment_grasp_multiseed_orientation_locked_adaptive.py

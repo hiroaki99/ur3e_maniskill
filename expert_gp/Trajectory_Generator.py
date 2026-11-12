@@ -7,7 +7,7 @@ Created on Wed Sep 11 14:09:23 2019
 import GaussianProcessMultiDim
 import numpy as np
 import matplotlib.pyplot as plt
-import utils
+# import utils
 
 class Trajectory_Generator():
     def __init__(self,dim,numclass,dirname):

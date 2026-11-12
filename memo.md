@@ -892,3 +892,31 @@ place final error    : 3.5174695373007594e-05
 retreat final error  : 2.685502184067876e-05
 total waypoints      : 120
 output: trajectories/pick_place_reference_v1.json
+
+
+
+(base) nakalab-ur@nakalab-ur-ZL7C-R47:~/デスクトップ/
+ur3e_maniskill$ /usr/bin/python3   scripts_sim2real/u
+r3e_ros2_bridge.py
+
+
+
+(base) nakalab-ur@nakalab-ur-ZL7C-R47:~/デスクトップ/ur
+3e_maniskill$ ros2 launch ur_robot_driver ur_control.la
+unch.py   ur_type:=ur3e   robot_ip:=192.168.2.4   launch_rviz:=false
+
+
+
+
+| Step | 作業                         | 目的                                          | 完了条件                            |
+| ---- | -------------------------- | ------------------------------------------- | ------------------------------- |
+| 1    | Yaginuma資産を配置              | 12 Expert GPの元データをManiSkill PJから読めるようにする    | 12個のclassファイルを認識                |
+| 2    | GPコードの互換化                  | 古いNumPy/Cython依存を現環境で動かす                    | `Trajectory_Generator` import成功 |
+| 3    | 12 Expert GPを生成            | 元実装と同じExpert軌道を再現                           | 12本すべて生成成功                      |
+| 4    | 軌道を可視化                     | 値や方向の異常を先に発見                                | 12本の軌道図を確認                      |
+| 5    | 座標契約を分離                    | Yaginuma論理 `[x,z]` とManiSkill `[x,y,z]` を接続 | 変換関数テストPASS                     |
+| 6    | 1 ExpertをManiSkillでdry-run | UR3eから実行可能か確認                               | 全軌道点で安全判定PASS                   |
+| 7    | 1 Expertをシミュレーション実行        | 軌道追従を確認                                     | TCPがExpert軌道を追従                 |
+| 8    | 12 Expertを自動評価             | 全クラスの実行可能性確認                                | 12/12の結果表を生成                    |
+| 9    | 開始位置補正を追加                  | 現在TCPからExpertへ滑らかにつなぐ                       | `correct_traj_begin`再現          |
+| 10   | Residual終点補正を接続            | 後のTD3 `[Δx,Δz]` を受けられるようにする                 | `[0,0]`で基準Expertと一致             |

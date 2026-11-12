@@ -1,0 +1,120 @@
+# Phase 5B-2 combined orientation-locked + adaptive grasp configuration.
+#
+# Keeps the Alignment randomized object pose/workspace.
+# Uses actual-state relative lift replanning.
+# Uses orientation-locked numerical IK for grasp/lift geometry.
+# Uses simulation contact-force feedback only as an execution adapter.
+#
+# NOTE:
+# These contact-force values are simulation tuning values, NOT validated
+# real EZGripper hardware safety limits.
+#
+project:
+  env_id: UR3eAlignment-v0
+  obs_mode: state
+  control_mode: pd_joint_delta_pos
+  seed: 0
+  max_episode_steps: 5000
+robot:
+  uid: ur3e_ezgripper
+  base_position:
+  - 0.0
+  - 0.0
+  - 0.0
+  initial_arm_qpos:
+  - 0.0
+  - -1.5707963
+  - 1.5707963
+  - -1.5707963
+  - -1.5707963
+  - 0.0
+  initial_gripper_qpos:
+  - -1.57075
+  - -1.57075
+gripper:
+  open_action: -1.0
+  close_action: 1.0
+  pre_contact_action: 0.57
+  left_contact_links:
+  - gripper_ezgripper_finger_pad_1
+  right_contact_links:
+  - gripper_ezgripper_finger_pad_2
+  contact_force_threshold_n: 0.1
+  stable_grasp_force_n: 5.0
+  bilateral_contact_streak: 3
+  squeeze_margin_action: 0.05
+objects:
+  size_m: 0.05
+  mass_kg: 0.1
+  colors_rgba:
+    A:
+    - 0.85
+    - 0.1
+    - 0.1
+    - 1.0
+    B:
+    - 0.1
+    - 0.45
+    - 0.85
+    - 1.0
+    C:
+    - 0.1
+    - 0.75
+    - 0.25
+    - 1.0
+table:
+  surface_z_m: 0.0
+logical_task:
+  box_length_m: 0.05
+  box_width_m: 0.05
+  table_length_m: 0.323
+  table_width_m: 0.323
+  a_x_min_m: 0.2
+  angle_limit_deg: 15.0
+workspace_mapping:
+  scale: 0.7783132530120481
+  logical_reference_xz_m:
+  - 0.1615
+  - 0.1615
+  world_reference_xy_m:
+  - 0.35
+  - 0.0
+alignment:
+  success_r_dis_threshold: 0.256
+  success_r_theta_threshold: 0.71
+control:
+  max_joint_delta_rad: 0.03
+ik:
+  epsilon_rad: 0.002
+  damping: 0.03
+  tolerance_m: 0.0015
+  max_iterations: 40
+  max_step_rad: 0.04
+grasp:
+  grasp_center_offset_m:
+  - 0.0
+  - 0.0
+  - 0.015
+  pregrasp_height_m: 0.1
+  reset_precontact_steps: 60
+  to_pregrasp_waypoints: 20
+  descend_waypoints: 20
+  micro_lift_height_m: 0.01
+  lift_waypoints: 10
+  control_steps_per_waypoint: 4
+  pregrasp_hold_steps: 10
+  grasp_ramp_steps: 100
+  bilateral_contact_streak: 3
+  squeeze_margin_action: 0.05
+  pre_lift_hold_steps: 30
+  pre_lift_required_contact_ratio: 0.8
+  stable_grasp_force_n: 5.0
+  micro_lift_success_threshold_m: 0.008
+  max_contact_force_n: 30.0
+  micro_lift_ik_tolerance_m: 0.0005
+  micro_lift_control_steps_per_waypoint: 8
+adaptive_gripper:
+  low_force_n: 10.0
+  high_force_n: 20.0
+  command_step: 0.0025
+  settle_steps: 30
